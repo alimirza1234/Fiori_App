@@ -1,0 +1,48 @@
+*&---------------------------------------------------------------------*
+*& Report Z_AM_SELECT_PRACTISE4
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT z_am_select_practise4.
+TABLES : ekko.
+
+DATA: LS_STR TYPE EKKO,
+      LT_TAB TYPE TABLE OF EKKO,
+
+      LS_STR2 TYPE EKPO,
+      LT_TAB2 TYPE TABLE OF EKPO.
+BREAK-POINT.
+SELECT * UP TO 10 rows FROM EKKO INTO TABLE LT_TAB.
+
+*  IF SY-SUBRC EQ '0'.
+*    LOOP AT LT_TAB INTO LS_STR.
+*      WRITE:/ LS_STR-aedat,LS_STR-ernam.
+*      ENDLOOP.
+*      ENDIF.
+
+ SELECT * UP TO 10 rows FROM  EKPO INTO TABLE LT_TAB2 FOR ALL ENTRIES IN LT_TAB WHERE EBELN EQ LT_TAB-EBELN.
+   IF SY-SUBRC EQ '0'.
+     LOOP AT LT_TAB2 INTO LS_STR2.
+       WRITE:/ LS_STR2-ebeln,LS_STR2-agdat,LS_STR2-MEINS.
+       ENDLOOP.
+        ENDIF.
+
+*DATA: lt_table  TYPE TABLE OF zamtab,
+*      ls_var    LIKE LINE OF lt_table,
+*      ls_var1   TYPE zamtab,
+*      lt_table2 TYPE TABLE OF zam_course,
+*      ls_table2 LIKE LINE OF lt_table2.    "declear table into local var and and local var make structureusing LIKE LINE OF"
+*
+*SELECT * FROM zamtab INTO TABLE lt_table.
+*IF sy-subrc EQ '0'.
+*  LOOP AT lt_table INTO ls_var.
+*    WRITE:/ ls_var-student_no.
+*  ENDLOOP.
+*ENDIF.
+*ULINE.
+*SELECT * FROM zam_course INTO TABLE lt_table2 FOR ALL ENTRIES IN lt_table WHERE student_no EQ lt_table-student_no.
+*IF sy-subrc EQ '0'.
+*  LOOP AT lt_table2 INTO ls_table2.
+*    WRITE: ls_table2-course_name,ls_table2-course_no.
+*  ENDLOOP.
+*ENDIF.

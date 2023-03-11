@@ -1,0 +1,153 @@
+*&---------------------------------------------------------------------*
+*& Report ZUAF_TEXDEC
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zuaf_texdec.
+TABLES : pa0185.
+
+DATA: gs_fcat TYPE          slis_fieldcat_alv,
+      gt_fcat TYPE          slis_t_fieldcat_alv.
+TABLES : pa0001.
+
+
+SELECTION-SCREEN BEGIN OF BLOCK part1 WITH FRAME TITLE TEXT-001.
+SELECT-OPTIONS : s_pernr FOR pa0185-pernr.
+
+SELECTION-SCREEN END OF BLOCK part1.
+
+TYPES: BEGIN OF lt_tab_str,
+         ictyp         TYPE pa0185-ictyp,
+         icnum         TYPE pa0185-icnum,
+         ename         TYPE pa0001-ename,
+         pernr         TYPE pa0001-pernr,
+         name2         TYPE pa0006-name2,
+         stras         TYPE pa0006-stras,
+         locat         TYPE pa0006-locat,
+         ort01         TYPE pa0006-ort01,
+         ort02         TYPE pa0006-ort02,
+         pstlz         TYPE pa0006-pstlz,
+         salary        TYPE pa9325-salary,
+         tax_slab_rate TYPE pa9325-tax_slab_rate,
+         tax_month     TYPE pa9325-tax_month,
+         plans         TYPE pa0001-plans,
+         plstx         TYPE t528t-plstx,
+       END OF lt_tab_str.
+
+
+DATA: lt_tab    TYPE TABLE OF lt_tab_str,
+      ls_tab    TYPE lt_tab_str,
+
+      lt_pa0185 TYPE TABLE OF pa0185,
+      ls_pa0185 TYPE pa0185,
+
+      lt_pa0001 TYPE TABLE OF pa0001,
+      ls_pa0001 TYPE pa0001,
+
+      lt_pa0006 TYPE TABLE OF pa0006,
+      ls_pa0006 TYPE pa0006,
+
+      lt_pa9325 TYPE TABLE OF pa9325,
+      ls_pa9325 TYPE pa9325,
+
+      lt_t528t  TYPE TABLE OF t528t,
+      ls_t528t  TYPE t528t.
+   break-point.
+
+SELECT * FROM pa0185 INTO TABLE lt_pa0185
+  WHERE pernr IN s_pernr.
+
+IF lt_pa0185 IS NOT INITIAL.
+
+
+  SELECT * FROM pa0001
+    INTO TABLE lt_pa0001 FOR ALL ENTRIES IN lt_pa0185 WHERE pernr = lt_pa0185-pernr.
+  IF lt_pa0001 IS NOT INITIAL.
+    SELECT * FROM t528t
+    INTO TABLE lt_t528t.
+*    FOR ALL ENTRIES IN lt_pa0001
+*    WHERE plans = ls_pa0001-plans.
+  ENDIF.
+  SELECT * FROM pa0006
+    INTO TABLE  lt_pa0006
+    FOR ALL ENTRIES IN lt_pa0185 WHERE pernr = lt_pa0185-pernr.
+
+  SELECT * FROM pa9325
+    INTO TABLE lt_pa9325
+    FOR ALL ENTRIES IN lt_pa0185 WHERE pernr = lt_pa0185-pernr.
+
+  SELECT * FROM pa9325
+  INTO TABLE lt_pa9325
+  FOR ALL ENTRIES IN lt_pa0185 WHERE pernr = lt_pa0185-pernr.
+
+ENDIF.
+
+LOOP AT lt_pa0185 INTO ls_pa0185.
+  ls_tab-ictyp = ls_pa0185-ictyp.
+  ls_tab-icnum = ls_pa0185-icnum.
+  ls_tab-pernr = ls_pa0185-pernr.
+
+  READ TABLE lt_pa0001 INTO ls_pa0001 WITH KEY pernr = ls_pa0185-pernr.
+  IF sy-subrc EQ '0'.
+    ls_tab-ename = ls_pa0001-ename.
+
+    READ TABLE lt_t528t INTO ls_t528t WITH KEY plans = ls_pa0001-plans.
+    IF sy-subrc EQ '0'.
+      ls_tab-plstx = ls_t528t-plstx.
+    ENDIF.
+
+  ENDIF.
+  READ TABLE lt_pa0006 INTO ls_pa0006 WITH KEY pernr = ls_pa0185-pernr.
+  IF sy-subrc EQ '0'.
+    ls_tab-name2 = ls_pa0006-name2.
+    ls_tab-stras = ls_pa0006-stras.
+    ls_tab-locat = ls_pa0006-locat.
+    ls_tab-ort01 = ls_pa0006-ort01.
+    ls_tab-ort02 = ls_pa0006-ort02.
+    ls_tab-pstlz = ls_pa0006-pstlz.
+  ENDIF.
+
+  READ TABLE lt_pa9325 INTO ls_pa9325 WITH KEY pernr = ls_pa0185-pernr.
+  IF sy-subrc EQ '0'.
+    ls_tab-salary = ls_pa9325-salary.
+    ls_tab-tax_slab_rate = ls_pa9325-tax_slab_rate.
+    ls_tab-tax_month = ls_pa9325-tax_month.
+  ENDIF.
+
+
+
+
+  APPEND ls_tab TO lt_tab.
+  CLEAR : ls_tab, ls_pa0185, ls_pa0001,ls_pa0006,ls_pa9325,ls_t528t.
+ENDLOOP.
+
+gt_fcat = VALUE slis_t_fieldcat_alv( ( fieldname = 'pernr' tabname = 'LT_TAB' seltext_m = 'Personal no'   )
+  ( fieldname = 'ictyp '          tabname = 'LT_TAB' seltext_m = 'ictyp '                                 )
+  ( fieldname = 'icnum'           tabname = 'LT_TAB' seltext_m = 'icnum'                                          )
+  ( fieldname = 'ename'           tabname = 'LT_TAB' seltext_m = 'ename'                                          )
+  ( fieldname = 'name2'           tabname = 'LT_TAB' seltext_m = 'name2'                                         )
+  ( fieldname = 'stras'           tabname = 'LT_TAB' seltext_m = 'stras'                                         )
+  ( fieldname = 'locat'           tabname = 'LT_TAB' seltext_m = 'locat'                                         )
+  ( fieldname = 'RCBON,'           tabname = 'LT_TAB' seltext_m = 'RCBON'                                         )
+  ( fieldname = 'UNAME'           tabname = 'LT_TAB' seltext_m = 'UNAME'                                         )
+  ( fieldname = 'NAME2'           tabname = 'LT_TAB' seltext_m = 'NAME2 '                                         )
+  ( fieldname = 'STRAS'           tabname = 'LT_TAB' seltext_m = 'STRAS'                                         )
+  ( fieldname = 'ort01'           tabname = 'LT_TAB' seltext_m = 'ort01'                                         )
+  ( fieldname = 'ort02'           tabname = 'LT_TAB' seltext_m = 'ort02'                                         )
+  ( fieldname = 'pstlz'           tabname = 'LT_TAB' seltext_m = 'pstlz'                                         )
+  ( fieldname = 'salary'           tabname = 'LT_TAB' seltext_m = 'salary'                                         )
+  ( fieldname = 'tax_slab_rate'           tabname = 'LT_TAB' seltext_m = 'tax_slab_rate'                                         )
+  ( fieldname = 'tax_month'         tabname = 'LT_TAB' seltext_m = 'tax_month '                                         )
+     ( fieldname = 'plans'         tabname = 'LT_TAB' seltext_m = 'plans'                                         )
+        ( fieldname = 'plstx'         tabname = 'LT_TAB' seltext_m = 'plstx'                                         ) ).
+
+
+CALL FUNCTION 'REUSE_ALV_GRID_DISPLAY'
+  EXPORTING
+    i_callback_program = sy-repid
+    it_fieldcat        = gt_fcat[]
+  TABLES
+    t_outtab           = lt_tab[]
+  EXCEPTIONS
+    program_error      = 1
+    OTHERS             = 2.

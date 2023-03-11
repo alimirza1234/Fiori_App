@@ -1,0 +1,37 @@
+*&---------------------------------------------------------------------*
+*& Report Z_AM_SELECT_PRACTISE2
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT z_am_select_practise2.
+
+TYPES: BEGIN OF ty_table,
+         first_name TYPE zamtab-first_name,
+         last_name  TYPE zamtab-last_name,
+         address    TYPE zamtab-address,
+       END OF ty_table.
+
+DATA: lt_table      TYPE TABLE OF zamtab,
+      ls_table_data TYPE ty_table,
+      lt_table2     TYPE TABLE OF ty_table,
+      ls_single_data TYPE zamtab.
+
+
+
+SELECT first_name last_name address
+  FROM zamtab
+  INTO TABLE lt_table2.
+IF sy-subrc EQ 0.
+
+  LOOP AT lt_table2 INTO ls_table_data.
+   WRITE:/ ls_table_data-first_name,ls_table_data-last_name,ls_table_data-address .
+  ENDLOOP.
+
+ENDIF.
+uline.
+SELECT SINGLE *
+  from zamtab
+  into ls_single_data
+  WHERE student_no EQ '55'.
+
+  write: ls_single_data-first_name.

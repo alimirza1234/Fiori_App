@@ -1,0 +1,105 @@
+*&*********************************************************************
+*&   Author           : Ali Mirza
+*&   Date             : 04-07-2022
+*&   Company          : TMC
+*&   Program Name     : ZER_OOP6
+*&   Module Name      : OOP
+*&   Program Type     : LOCAL CLASS
+*&   Transport No     : LOCAL
+*&*********************************************************************
+**& Program Definition : UPLOAD PROGRAM
+**&
+*&
+*&*********************************************************************
+*& PROGRAM CHANGES / Modification Logs :
+*&*********************************************************************
+*&   Date   | Request    | Programmer   |     Changes
+*&+-------------------------------------------------------------------+
+*&          |            | Tech2        |
+*&+-------------------------------------------------------------------+
+
+REPORT zam_upload_program.
+TYPE-POOLS truxs.
+*TABLES: zam_uploads.
+
+TYPES : BEGIN OF ty_final,
+          std_id        TYPE string,
+          std_name      TYPE string,
+          std_class     TYPE string,
+          std_rollno    TYPE string,
+          std_regid     TYPE string,
+          std_group     TYPE string,
+          std_mentor_id TYPE string,
+
+        END OF ty_final.
+
+DATA : lt_upload TYPE TABLE OF zam_uploads,
+       ls_upload TYPE zam_uploads,
+       lt_final  TYPE TABLE OF ty_final,
+       ls_final  TYPE ty_final.
+
+
+
+DATA it_type   TYPE truxs_t_text_data.
+
+
+SELECTION-SCREEN BEGIN OF BLOCK b1 WITH FRAME TITLE TEXT-001.
+
+PARAMETERS: p_file TYPE rlgrap-filename.
+
+SELECTION-SCREEN END OF BLOCK b1.
+
+
+
+
+AT SELECTION-SCREEN ON VALUE-REQUEST FOR p_file.
+
+  CALL FUNCTION 'F4_FILENAME'
+    EXPORTING
+*     program_name  = syst-cprog
+*     dynpro_number = syst-dynnr
+      field_name = 'P_FILE'
+    IMPORTING
+      file_name  = p_file.
+
+
+  CALL FUNCTION 'TEXT_CONVERT_XLS_TO_SAP'
+    EXPORTING
+*     I_FIELD_SEPERATOR    =
+      i_line_header        = 'X'
+*     i_tab_raw_data       = lt_upload
+      i_tab_raw_data       = it_type
+      i_filename           = p_file
+    TABLES
+*     i_tab_converted_data = lt_upload
+      i_tab_converted_data = lt_final
+*   EXCEPTIONS
+*     CONVERSION_FAILED    = 1
+*     OTHERS               = 2
+    .
+  IF sy-subrc <> 0.
+* Implement suitable error handling here
+  ENDIF.
+
+*  IF sy-subrc NE  0.
+*    MESSAGE ID sy-msgid
+*            TYPE sy-msgty
+*            NUMBER sy-msgno
+*            WITH sy-msgv1 sy-msgv2 sy-msgv3 sy-msgv4.
+*  ENDIF.
+
+  BREAK-POINT.
+
+  LOOP AT lt_final INTO ls_final.
+*   ls_final-mandt  = ls_upload-mandt.
+    ls_upload-zstd_id = ls_final-std_id.
+    ls_upload-zstd_name = ls_final-std_name.
+    ls_upload-zstd_class = ls_final-std_class.
+    ls_upload-zstd_rollno = ls_final-std_rollno.
+    ls_upload-zstd_regid = ls_final-std_regid.
+    ls_upload-zstd_group = ls_final-std_group.
+    ls_upload-zstd_mentor_id = ls_final-std_mentor_id.
+    INSERT zam_uploads FROM ls_upload.
+
+
+  ENDLOOP.

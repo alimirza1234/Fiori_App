@@ -1,0 +1,55 @@
+*&---------------------------------------------------------------------*
+*& Report ZAMDEMO_MARA_REPORT
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zamdemo_mara_report.
+
+TYPES : BEGIN OF mara_structure,
+
+          MATERIAL_NO     TYPE mara-matnr,
+          CREATED_ON      TYPE mara-ersda,
+          CREATED_BY      TYPE mara-ernam,
+          COMPLETE_STATUS TYPE mara-vpsta,
+          MATERIAL_TYPE   TYPE mara-mtart,
+
+        END OF mara_structure.
+
+DATA : gm_st   TYPE mara_structure,
+       gm_tb   TYPE TABLE OF mara_structure,
+       gs_fcat TYPE  slis_fieldcat_alv,
+       gt_fcat TYPE  slis_t_fieldcat_alv.
+
+BREAK-POINT.
+SELECT *
+  FROM mara INTO TABLE @DATA(lt_mara).
+
+LOOP AT lt_mara INTO DATA(ls_mara).
+  gm_st-material_no = ls_mara-matnr.
+  gm_st-created_on = ls_mara-ersda.
+  gm_st-created_by = ls_mara-ernam.
+  gm_st-complete_status = ls_mara-vpsta.
+  gm_st-material_type = ls_mara-mtart.
+
+  APPEND gm_st TO gm_tb.
+  CLEAR gm_st.
+
+ENDLOOP.
+
+gt_fcat = VALUE slis_t_fieldcat_alv( ( fieldname = 'MATERIAL NO' tabname = 'GM_TB' seltext_m = 'MATERIAL NO'   )
+    ( fieldname = 'CREATED_ON'          tabname = 'GM_TB' seltext_m = 'CREATE DATE'                                 )
+    ( fieldname = 'CREATED_BY'           tabname = 'GM_TB' seltext_m = 'CREATED BY'                                          )
+    ( fieldname = 'COMPLETE_STATUS'           tabname = 'GM_TB' seltext_m = 'STATUS'                                          )
+    ( fieldname = 'MATERIAL_TYPE'           tabname = 'GM_TB' seltext_m = 'TYPE'                                         ) ).
+
+
+CALL FUNCTION 'REUSE_ALV_GRID_DISPLAY'
+  EXPORTING
+    i_callback_program     = sy-repid
+
+    it_fieldcat            = gt_fcat[]
+  TABLES
+    t_outtab               = gm_tb[]
+  EXCEPTIONS
+    program_error          = 1
+    OTHERS                 = 2.

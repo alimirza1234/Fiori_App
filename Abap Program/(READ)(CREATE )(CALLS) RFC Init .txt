@@ -1,0 +1,72 @@
+FUNCTION zam_rfc_quality.
+*"----------------------------------------------------------------------
+*"*"Local Interface:
+*"  IMPORTING
+*"     VALUE(IV_CALL) TYPE  CHAR1 OPTIONAL
+*"     VALUE(IV_JSON) TYPE  STRING OPTIONAL
+*"  EXPORTING
+*"     VALUE(EV_JSON) TYPE  STRING
+*"     VALUE(EV_TABLE) TYPE  ZAM_RFC_TEST_TT
+*"     VALUE(EV_TABLE1) TYPE  ZRFC_TEST
+*"     VALUE(EV_JSON1) TYPE  STRING
+*"----------------------------------------------------------------------
+  DATA : lt_create TYPE TABLE OF zrfc_test,
+         ls_create TYPE zrfc_test.
+  CASE iv_call.
+    WHEN 'I'.
+      SELECT * FROM zrfc_test INTO TABLE @DATA(lt_rfc_test).
+      IF sy-subrc EQ 0.
+        ev_json = /ui2/cl_json=>serialize( EXPORTING data = lt_rfc_test compress = abap_true ).
+      ENDIF.
+
+    WHEN 'Q'.
+      SELECT * FROM zrfc_test INTO TABLE ev_table.
+
+    WHEN 'S'.
+      BREAK-POINT.
+
+*      /ui2/cl_json=>deserialize(
+*      EXPORTING json = iv_json
+*      CHANGING data = lt_create      // when table type import then use lt_create 
+*             ).
+
+      /ui2/cl_json=>deserialize(
+      EXPORTING json = iv_json
+      CHANGING data = ls_create    // when only structure import then use ls_create
+             ).
+
+*      DATA : i TYPE i VALUE 1 .
+*      i = 0.
+*      LOOP AT lt_create INTO ls_create.              // we are tryinh to add auto id increament
+*        i = i + 1.
+*DATA : ls_iv_json TYPE json.
+
+*        ls_create-zsid = ls_create-zsid + 1 .
+*        zrfc_test-zsname = ls_iv_json-zsname.
+*        zrfc_test-zdescription = ls_create-zdescription.
+*        zrfc_test-ztime = ls_create-ztime.
+*        zrfc_test-zcourse = ls_create-zcourse.
+
+*        CLEAR :    ls_create.
+
+      MODIFY zrfc_test FROM ls_create.
+*
+*
+*      ENDLOOP.
+
+
+*      SELECT * FROM zrfc_test INTO TABLE @DATA(lt_rfc_test1).
+**
+*        ev_json = /ui2/cl_json=>serialize( EXPORTING data = lt_rfc_test1 compress = abap_true ).   // export table to fiori  
+
+
+*      ev_json = 'data saved'.  // export data saved string into fiori
+*      zrfc_test.
+
+
+
+  ENDCASE.
+
+
+
+ENDFUNCTION.

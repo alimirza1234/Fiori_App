@@ -1,0 +1,148 @@
+@AbapCatalog.sqlViewName: 'ZX_SO_8440'
+@AbapCatalog.compiler.compareFilter: true
+@AbapCatalog.preserveKey: true
+@AccessControl.authorizationCheck: #CHECK
+@EndUserText.label: 'This is the Second view'
+@OData.publish: true
+
+@UI.headerInfo: {
+
+typeName: 'Sales Order',
+
+typeNamePlural: 'Sales Orders'}
+
+@UI.chart: [{
+
+qualifier: 'ChartDefault',
+
+chartType: #DONUT,
+
+description: 'Sales Details',
+
+dimensions: ['hwbas'],
+
+measures: ['counter'],
+
+dimensionAttributes: [{dimension: 'hwbas', role: #CATEGORY }],
+
+measureAttributes: [{measure: 'counter', role: #AXIS_1, asDataPoint: true }] },
+
+
+
+
+{
+
+qualifier: 'KPIChart2',
+
+chartType: #COLUMN,
+
+description: 'Sales Details',
+
+dimensions: ['hwbas'],
+
+measures: ['counter'],
+
+dimensionAttributes: [{dimension: 'hwbas', role: #CATEGORY }],
+
+measureAttributes: [{measure: 'counter', role: #AXIS_1, asDataPoint: true }] }]
+
+
+
+
+@UI.presentationVariant:
+
+[
+
+{qualifier: 'KPINetwr',sortOrder: [{by: 'counter', direction: #DESC }],
+
+visualizations: [{ type: #AS_CHART, qualifier: 'KPIChart1' },
+
+{type: #AS_DATAPOINT,qualifier: 'KPIChart1'}]},
+
+
+
+
+{qualifier: 'KPINETWR',sortOrder: [{by: 'buzei', direction: #DESC }],
+
+visualizations: [{ type: #AS_CHART, qualifier: 'KPIChart2' }]},
+
+{qualifier: 'Default', visualizations: [{ type: #AS_CHART, qualifier: 'ChartDefault' }]}]
+
+
+
+
+@UI.selectionVariant: [{
+
+qualifier: 'KPINetwr',text: 'KPI Net Value'},
+
+{ qualifier: 'Default',text: 'Default Net Value'}]
+
+
+
+
+@UI.selectionPresentationVariant: [{
+
+qualifier: 'KPINetwr',
+
+presentationVariantQualifier: 'KPINetwr',
+
+selectionVariantQualifier: 'KPINetwr'
+
+},{
+
+qualifier: 'Default',
+
+presentationVariantQualifier: 'Default',
+
+selectionVariantQualifier: 'Default'
+
+}]
+
+
+
+define view ZXC_SO_8440 as select from bset
+association [1..*] to ZXC_SOITEM_8440 as _SOITMES on $projection.mandt = _SOITMES.mandt{
+
+ @UI.selectionField: [{position: 10 }]
+@UI.identification: [{position : 10, importance: #HIGH }] 
+@UI.lineItem: [{position: 10 }]
+key mandt,
+
+
+@UI.selectionField: [{position: 20 }]
+@UI.lineItem: [{position: 20 }]
+
+key bukrs,
+
+
+@UI.selectionField: [{position: 30 }]
+@UI.lineItem: [{position: 30 }] 
+belnr,
+
+@UI.selectionField: [{position: 40 }]
+@UI.lineItem: [{position: 40 }] 
+gjahr,
+
+@UI.selectionField: [{position: 50 }]
+@UI.lineItem: [{position: 50 }] 
+hwbas,
+ 
+@UI.selectionField: [{position: 60 }]
+@UI.lineItem: [{position: 60 }] 
+fwbas,
+
+@UI.selectionField: [{position: 70 }]
+@UI.lineItem: [{position: 70 }] 
+knumh,
+
+@UI.selectionField: [{position: 80 }]
+@UI.lineItem: [{position: 80 }] 
+buzei,
+
+_SOITMES,
+
+ @DefaultAggregation: #SUM
+
+cast(1 as abap.int8) as counter
+    
+}

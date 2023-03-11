@@ -1,0 +1,67 @@
+*&---------------------------------------------------------------------*
+*& Report ZSR_MM_ZPRSR_UPLOAD
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+*& Project ID        :                                                 *
+*& H2HID / WBS ID    :                                               *
+*& Author            : Sumaira Rauf                             *
+*& Module            : MM                                                 *
+*& Creation Date     : 10.09.2017                                      *
+*& Transport Request : IEDK900009                                              *
+*& Description       : MASS UPLOAD PROGRAM FOR .DEPT                                            *
+*&---------------------------------------------------------------------*
+*&   Date    |    Author   |    Request    |     Description           *
+*&---------------------------------------------------------------------*
+*&           |             |               |                           *
+*&---------------------------------------------------------------------*
+
+REPORT ZSR_MM_ZPRSR_UPLOAD.
+
+TYPE-POOLS truxs.
+TABLES : ZPRSR.
+* Selection screen
+PARAMETERS p_file TYPE rlgrap-filename OBLIGATORY DEFAULT 'C:\TEST.xls'.
+TYPES:
+  BEGIN OF t_tab,
+    PROC_ID TYPE ZPROC_ID,
+   PROC_NAME  TYPE ZPROC_NAME,
+  END OF t_tab.
+DATA :
+  t_upload  TYPE STANDARD TABLE OF t_tab,
+  wa_upload TYPE t_tab,
+  it_type   TYPE truxs_t_text_data.
+AT SELECTION-SCREEN ON VALUE-REQUEST FOR p_file.
+  CALL FUNCTION 'F4_FILENAME'
+  EXPORTING
+*   PROGRAM_NAME  = SYST-CPROG
+*   DYNPRO_NUMBER = SYST-DYNNR
+    field_name    = 'P_FILE'
+  IMPORTING
+    file_name     = p_file.
+START-OF-SELECTION.
+* Uploading the data in the file into internal table
+  CALL FUNCTION 'TEXT_CONVERT_XLS_TO_SAP'
+  EXPORTING
+*   I_FIELD_SEPERATOR =
+*   I_LINE_HEADER  = 'X'
+    i_tab_raw_data = it_type
+    i_filename     = p_file
+  TABLES
+    i_tab_converted_data = t_upload[]
+  EXCEPTIONS
+    conversion_failed = 1
+    OTHERS            = 2.
+  IF sy-subrc NE  0.
+    MESSAGE ID sy-msgid
+            TYPE sy-msgty
+            NUMBER sy-msgno
+            WITH sy-msgv1 sy-msgv2 sy-msgv3 sy-msgv4.
+  ENDIF.
+END-OF-SELECTION.
+* Uploading the data into the database table
+  LOOP AT T_UPLOAD INTO WA_UPLOAD.
+    ZPRSR-PROC_ID = WA_UPLOAD-PROC_ID.
+    ZPRSR-PROC_NAME = WA_UPLOAD-PROC_NAME.
+    MODIFY ZPRSR.
+  ENDLOOP.

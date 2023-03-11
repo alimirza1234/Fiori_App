@@ -1,0 +1,24 @@
+*&---------------------------------------------------------------------*
+*&  Include           LZTAB_FGF02
+*&---------------------------------------------------------------------*
+FORM CREATE.
+** -- Data Declarations
+*DATA: lv_CDATE TYPE syst-CDATE.
+*-- Time stamp conversion
+  DATA : LV_LENGTH TYPE I.
+
+  BREAK HAHMED.
+
+  LV_LENGTH = STRLEN( ZUSTAB_CONTROL-ZZPIN ).
+
+  IF LV_LENGTH LT 4.
+
+    MESSAGE 'Pin must be Greater than equals to 4 Digits!' TYPE 'E'.
+
+  ENDIF.
+** -- Created On & Created By
+  ZUSTAB_CONTROL-CRTD_BY = SY-UNAME.
+  ZUSTAB_CONTROL-CRTD_ON = SY-DATUM.
+*ZUSTAB_CONTROL-CRTD_ON = sy-CDATE.
+  ZUSTAB_CONTROL-CRTD_AT = SY-UZEIT.
+ENDFORM.

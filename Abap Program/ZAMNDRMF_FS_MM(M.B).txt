@@ -1,0 +1,120 @@
+*&---------------------------------------------------------------------*
+*& Report ZAMNDRMF_FS_MM
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zamndrmf_fs_mm.
+
+DATA: gs_fcat TYPE          slis_fieldcat_alv,
+      gt_fcat TYPE          slis_t_fieldcat_alv.
+
+TABLES: ekko.
+*1. Declaration always first
+TYPES: BEGIN OF lt_tables,
+         rfq_num             TYPE ekko-ebeln,
+         vendor_name         TYPE lfa1-name1,
+         material_no         TYPE ekpo-matnr,
+         material_short_text TYPE ekpo-txz01,
+         material_quantity   TYPE ekpo-ktmng,
+       END OF lt_tables.
+
+DATA: lt_tab      TYPE TABLE OF lt_tables,
+      ls_tab      TYPE lt_tables,
+
+      lt_tab_ekko TYPE TABLE OF ekko,
+      ls_tab_ekko TYPE ekko,
+
+      lt_tab_ekpo TYPE TABLE OF ekpo,
+      ls_tab_ekpo TYPE ekpo,
+
+      lt_tab_lfa1 TYPE TABLE OF lfa1,
+      ls_tab_lfa1 TYPE lfa1.
+
+*2. declare selction screen 2nd
+
+SELECTION-SCREEN BEGIN OF BLOCK part1 WITH FRAME TITLE TEXT-001.
+SELECT-OPTIONS : s_ebeln FOR ekko-ebeln.
+SELECTION-SCREEN END OF BLOCK part1.
+
+
+*3. Program event 1st
+*why initialize? coz there is a chance of garbage value
+INITIALIZATION.
+  FREE: lt_tab,
+        ls_tab ,
+
+        lt_tab_ekko,
+        ls_tab_ekko,
+
+        lt_tab_ekpo,
+        ls_tab_ekpo,
+
+        lt_tab_lfa1,
+        ls_tab_lfa1.
+
+
+
+START-OF-SELECTION.
+
+  SELECT *
+    FROM ekko
+      INTO TABLE lt_tab_ekko
+        WHERE ebeln IN s_ebeln.
+
+  IF NOT lt_tab_ekko[] IS INITIAL.
+
+    SELECT *
+      FROM ekpo
+        INTO TABLE lt_tab_ekpo
+          FOR ALL ENTRIES IN lt_tab_ekko
+            WHERE ebeln = lt_tab_ekko-ebeln.
+
+    SELECT *
+      FROM lfa1
+        INTO TABLE lt_tab_lfa1
+          FOR ALL ENTRIES IN lt_tab_ekko
+            WHERE lifnr = lt_tab_ekko-lifnr.
+
+  ENDIF.
+
+  LOOP AT lt_tab_ekko INTO ls_tab_ekko.
+
+    ls_tab-rfq_num = ls_tab_ekko-ebeln.
+
+    READ TABLE lt_tab_ekpo INTO ls_tab_ekpo WITH KEY ebeln = ls_tab_ekko-ebeln.
+    IF sy-subrc = 0. "if above query succeeds
+      ls_tab-material_no = ls_tab_ekpo-matnr.
+      ls_tab-material_short_text = ls_tab_ekpo-txz01.
+      ls_tab-material_quantity = ls_tab_ekpo-ktmng.
+    ENDIF.
+
+    READ TABLE lt_tab_lfa1 INTO ls_tab_lfa1 WITH KEY lifnr = ls_tab_ekko-lifnr.
+    IF sy-subrc = 0.
+      ls_tab-vendor_name = ls_tab_lfa1-name1.
+    ENDIF.
+
+    APPEND ls_tab TO lt_tab.
+
+    CLEAR : ls_tab,
+            ls_tab_ekko,
+            ls_tab_ekpo,
+            ls_tab_lfa1.
+
+  ENDLOOP.
+
+  gt_fcat = VALUE slis_t_fieldcat_alv( ( fieldname = 'rfq_num' tabname = 'LT_TAB' seltext_m = 'rfq_num'   )
+    ( fieldname = 'material_no'          tabname = 'LT_TAB' seltext_m = 'material_no'                                 )
+    ( fieldname = 'material_short_text'           tabname = 'LT_TAB' seltext_m = 'material_short_text'                                          )
+    ( fieldname = 'material_quantity'           tabname = 'LT_TAB' seltext_m = 'material_quantity'                                          )
+    ( fieldname = 'vendor_name'           tabname = 'LT_TAB' seltext_m = 'vendor_name'                                         )
+*        ( fieldname = 'plstx'         tabname = 'LT_TAB' seltext_m = 'plstx'                                         )
+   ).
+  CALL FUNCTION 'REUSE_ALV_GRID_DISPLAY'
+    EXPORTING
+      i_callback_program = sy-repid
+      it_fieldcat        = gt_fcat[]
+    TABLES
+      t_outtab           = lt_tab[]
+    EXCEPTIONS
+      program_error      = 1
+      OTHERS             = 2.

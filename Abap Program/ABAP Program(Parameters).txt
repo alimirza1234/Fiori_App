@@ -1,0 +1,141 @@
+*&---------------------------------------------------------------------*
+*& Report Z_AM_SELECT_PRACTISE3
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT z_am_select_practise3.
+TABLES : ekko.
+
+
+DATA: lt_table TYPE TABLE OF ekko,
+      ls_data  TYPE ekko.
+BREAK-POINT.
+
+*SELECTION-SCREEN BEGIN OF BLOCK part1 WITH FRAME TITLE text-002.
+SELECTION-SCREEN BEGIN OF BLOCK part1.
+PARAMETERS : P1 TYPE BSART.
+SELECTION-SCREEN END OF BLOCK part1.
+
+SELECTION-SCREEN BEGIN OF BLOCK part2.
+PARAMETERS : P2 TYPE EBELN.
+SELECTION-SCREEN END OF BLOCK part2.
+
+*SELECT * UP TO 10 ROWS
+*SELECT EBELN , BUKRS
+*  FROM ekko
+*  INTO TABLE lt_table
+*  WHERE aedat EQ '20191003'.
+
+SELECT * UP TO 10 ROWS
+*SELECT EBELN , BUKRS
+  FROM ekko
+  INTO TABLE lt_table
+  WHERE BSART = P1.
+
+SELECT * FROM ekko INTO TABLE lt_table
+  WHERE EBELN = P2.
+
+IF sy-subrc EQ 0.
+*  LOOP AT lt_table INTO data(ls_data). "new syntex for declearing for structure
+  LOOP AT lt_table INTO ls_data.
+
+    WRITE:/ ls_dATA-ernam.
+
+  ENDLOOP.
+ENDIF.
+ULINE.
+SELECT * UP TO 10 ROWS FROM ekko INTO TABLE lt_table WHERE ernam EQ 'TMC.UMAIR.H'.
+
+IF sy-subrc EQ 0.
+  LOOP AT lt_table INTO ls_data.
+    WRITE:/ ls_data-aedat, ls_data-ernam.
+*    CL_DEMO_OUTPUT=>DISPLAY( LT_TABLE ).
+
+  ENDLOOP.
+ENDIF.
+uline.
+SELECT * UP TO 10 rows FROM EKKO INTO TABLE lt_table.
+  LOOP AT lt_table INTO ls_data.
+    write:/ ls_data-aedat,ls_data-ebeln,ls_data-ernam.
+    ENDLOOP.
+ULINE.
+TYPES: BEGIN OF ty_table1,
+         ebeln TYPE ekko-ebeln,
+         ernam TYPE ekko-ernam,
+         aedat TYPE ekko-aedat,
+       END OF ty_table1.
+
+DATA: lt_tab_data TYPE TABLE OF ty_table1,
+      ls_tab_we   TYPE ty_table1.
+BREAK-POINT.
+SELECT ebeln ernam aedat
+  FROM ekko
+  INTO TABLE lt_tab_data WHERE ernam EQ 'TMC.UMAIR.H'.
+
+IF sy-subrc EQ 0.
+  LOOP AT lt_tab_data INTO ls_tab_we.
+    WRITE:/ ls_tab_we-aedat, ls_tab_we-ebeln, ls_tab_we-ernam.
+  ENDLOOP.
+ENDIF.
+ULINE.
+
+SELECT ebeln ernam aedat
+  FROM ekko
+  INTO CORRESPONDING FIELDS OF TABLE lt_tab_data.
+IF sy-subrc EQ 0.
+  LOOP AT lt_tab_data INTO ls_tab_we.
+    WRITE: ls_tab_we-aedat,ls_tab_we-ebeln,ls_tab_we-ernam.
+
+  ENDLOOP.
+ENDIF.
+ULINE.
+
+*DATA: it_ekko TYPE  TABLE OF ekko,
+*      wa_ekko LIKE LINE OF it_ekko,
+*
+*      it_ekpo TYPE TABLE OF ekpo,
+*      wa_ekpo LIKE LINE OF it_ekpo.
+*
+*SELECT *
+* UP TO 10 ROWS  "only return first 10 hits
+* FROM ekko
+* INTO TABLE it_ekko.
+*LOOP AT it_ekko INTO wa_ekko.
+*  WRITE:/ wa_ekko-ebeln.
+*ENDLOOP.
+*IF sy-subrc EQ 0.
+** The FOR ALL ENTRIES statement only retrieves data that matches
+** entries within a particular internal table.
+*  SELECT *
+*    FROM ekpo
+*    INTO TABLE it_ekpo
+*    FOR ALL ENTRIES IN it_ekko
+*    WHERE ebeln EQ it_ekko-ebeln.
+*  WRITE:/ 'FOR ALL ENTRIES comand '.
+*  LOOP AT it_ekpo INTO wa_ekpo.
+*    WRITE:/ wa_ekpo-ebeln, wa_ekpo-ebelp.
+*  ENDLOOP.
+*ENDIF.
+
+*DATa: IT_TESTING TYPE TABLE OF ZAMTAB,
+*      ls_var like LINE OF IT_TESTING,
+*
+*      LT_TESTING2 TYPE TABLE OF ZAM_COURSE,
+*      ls_var2 LIKE LINE OF LT_TESTING2.
+*
+*SELECT * from ZAMTAB INTO TABLE IT_TESTING.
+* IF sy-subrc EQ 0.
+*   LOOP AT IT_TESTING INTO ls_var.
+*     write:/ ls_var-student_no.
+*     ENDLOOP.
+*        ENDIF.
+*SELECT * from ZAM_COURSE INTO TABLE LT_TESTING2 FOR ALL ENTRIES IN IT_TESTING WHERE STUDENT_NO EQ IT_TESTING-student_no.
+*   IF sy-subrc EQ 0.
+*  LOOP AT  LT_TESTING2 INTO ls_var2.
+*    write:/ ls_var2-student_no,ls_var2-course_name,ls_var2-course_no.
+*    ENDLOOP.
+*    ENDIF.
+
+
+*CL_DEMO_OUTPUT=>DISPLAY( LT_TABLE ).
+* write: lt_

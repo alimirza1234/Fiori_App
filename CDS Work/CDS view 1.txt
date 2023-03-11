@@ -1,0 +1,15 @@
+@AbapCatalog.sqlViewName: 'ZX_SOITEMS_84'
+@AbapCatalog.compiler.compareFilter: true
+@AbapCatalog.preserveKey: true
+@AccessControl.authorizationCheck: #CHECK
+@EndUserText.label: 'This is the first view'
+define view ZXC_SOITEM_8440 as select from bset {
+    key mandt,
+   key bukrs,
+    belnr,
+    gjahr,
+    hwbas,
+    fwbas,
+    knumh
+
+}

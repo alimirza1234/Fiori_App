@@ -1,0 +1,184 @@
+*&---------------------------------------------------------------------*
+*& Report Z_UCA_HCM
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+
+REPORT z_uca_hcm.
+
+*INCLUDE: z_uca_hcm_top,
+*         z_uca_hcm_so1,
+*         z_uca_hcm_f01.
+*
+*START-OF-SELECTION.
+*PERFORM GET_DATA.
+*PERFORM DISPLY_DATA.
+DATA: gs_fcat TYPE          slis_fieldcat_alv,
+      gt_fcat TYPE          slis_t_fieldcat_alv.
+TABLES : pa0001.
+
+
+SELECTION-SCREEN BEGIN OF BLOCK part1 WITH FRAME TITLE TEXT-001.
+SELECT-OPTIONS : s_pernr FOR pa0001-pernr.
+
+SELECTION-SCREEN END OF BLOCK part1.
+
+
+TYPES: BEGIN OF lt_tables,
+         pernr TYPE pa0001-pernr,
+         btrtl TYPE pa0001-btrtl,
+         vorna TYPE pa0002-vorna,
+         nachn TYPE pa0002-nachn,
+         bankn TYPE pa0009-bankn,
+  DAT00 TYPE pa0003-dat00,
+  UHR00 TYPE pa0003-uhr00,
+   RCBON TYPE pa0003-rcbon,
+  UNAME TYPE pa0006-uname,
+  NAME2 TYPE pa0006-name2 ,
+  STRAS TYPE pa0006-stras,
+  EMPCT TYPE pa0007-empct,
+  WOSTD TYPE pa0007-wostd,
+   ARBST TYPE pa0007-arbst,
+  AEDTM TYPE pa0008-aedtm,
+  TRFAR TYPE pa0008-trfar,
+   TRFST TYPE pa0008-trfst,
+       END OF lt_tables.
+
+DATA: lt_tab  TYPE TABLE OF lt_tables,
+      lt_tab1 TYPE lt_tables,
+
+      lt_pa01 TYPE TABLE OF pa0001,
+      ls_pa01 TYPE pa0001,
+
+      lt_pa02 TYPE TABLE OF pa0002,
+      ls_pa02 TYPE pa0002,
+
+      lt_pa09 TYPE TABLE OF pa0009,
+      ls_pa09 TYPE pa0009,
+
+      lt_pa03 TYPE TABLE OF pa0003,
+      ls_pa03 TYPE pa0003,
+
+      lt_pa06 TYPE TABLE OF pa0006,
+      ls_pa06 TYPE pa0006,
+
+      lt_pa07 TYPE TABLE OF pa0007,
+      ls_pa07 TYPE pa0007,
+
+      lt_pa08 TYPE TABLE OF pa0008,
+      ls_pa08 TYPE pa0008.
+
+SELECT *
+FROM pa0001 INTO TABLE lt_pa01
+WHERE pernr IN s_pernr.
+
+SELECT *
+FROM pa0002 INTO TABLE lt_pa02
+FOR ALL ENTRIES IN lt_pa01
+WHERE pernr = lt_pa01-pernr.
+
+SELECT * FROM pa0009
+INTO TABLE lt_pa09
+FOR ALL ENTRIES IN lt_pa01
+WHERE pernr = lt_pa01-pernr.
+
+
+SELECT * FROM pa0003
+INTO TABLE lt_pa03
+FOR ALL ENTRIES IN lt_pa01
+WHERE pernr = lt_pa01-pernr.
+
+  SELECT * FROM pa0006
+INTO TABLE lt_pa06
+FOR ALL ENTRIES IN lt_pa01
+WHERE pernr = lt_pa01-pernr.
+
+
+  SELECT * FROM pa0007
+INTO TABLE lt_pa07
+FOR ALL ENTRIES IN lt_pa01
+WHERE pernr = lt_pa01-pernr.
+
+     SELECT * FROM pa0008
+INTO TABLE lt_pa08
+FOR ALL ENTRIES IN lt_pa01
+WHERE pernr = lt_pa01-pernr.
+
+LOOP AT lt_pa01 INTO ls_pa01.
+  lt_tab1-pernr = ls_pa01-pernr.
+  lt_tab1-btrtl = ls_pa01-btrtl.
+
+  READ TABLE lt_pa02 INTO ls_pa02 WITH KEY pernr = ls_pa01-pernr.
+  IF sy-subrc EQ '0'.
+    lt_tab1-vorna = ls_pa02-vorna.
+    lt_tab1-nachn = ls_pa02-nachn.
+  ENDIF.
+  READ TABLE  lt_pa09 INTO ls_pa09 WITH KEY pernr = ls_pa01-pernr.
+  IF sy-subrc EQ '0'.
+    lt_tab1-bankn = ls_pa09-bankn.
+  ENDIF.
+    READ TABLE  lt_pa03 INTO ls_pa03 WITH KEY pernr = ls_pa01-pernr.
+  IF sy-subrc EQ '0'.
+    lt_tab1-dat00 = ls_pa03-dat00.
+    lt_tab1-uhr00 = ls_pa03-uhr00.
+    lt_tab1-RCBON = ls_pa03-RCBON.
+
+  ENDIF.
+    READ TABLE  lt_pa06 INTO ls_pa06 WITH KEY pernr = ls_pa01-pernr.
+  IF sy-subrc EQ '0'.
+    lt_tab1-UNAME  = ls_pa06-UNAME.
+    lt_tab1-NAME2 = ls_pa06-NAME2.
+    lt_tab1-STRAS = ls_pa06-STRAS.
+
+  ENDIF.
+    READ TABLE  lt_pa07 INTO ls_pa07 WITH KEY pernr = ls_pa01-pernr.
+  IF sy-subrc EQ '0'.
+    lt_tab1-EMPCT = ls_pa07-EMPCT.
+      lt_tab1-WOSTD = ls_pa07-WOSTD.
+      lt_tab1-ARBST = ls_pa07-ARBST.
+
+  ENDIF.
+   READ TABLE  lt_pa08 INTO ls_pa08 WITH KEY pernr = ls_pa01-pernr.
+  IF sy-subrc EQ '0'.
+    lt_tab1-AEDTM = ls_pa08-AEDTM.
+      lt_tab1-TRFAR = ls_pa08-TRFAR.
+        lt_tab1-TRFST = ls_pa08-TRFST.
+  ENDIF.
+  APPEND lt_tab1 TO lt_tab.
+  CLEAR : lt_tab1, ls_pa02, ls_pa09,ls_pa01,ls_pa03,ls_pa06,ls_pa07,ls_pa08.
+
+ENDLOOP.
+gt_fcat = VALUE slis_t_fieldcat_alv( ( fieldname = 'PERNR' tabname = 'LT_TAB' seltext_m = 'Personal no'   )
+    ( fieldname = 'btrtl'          tabname = 'LT_TAB' seltext_m = 'btrtl'                                 )
+    ( fieldname = 'vorna'           tabname = 'LT_TAB' seltext_m = 'vorna'                                          )
+    ( fieldname = 'nachn'           tabname = 'LT_TAB' seltext_m = 'nachn'                                          )
+    ( fieldname = 'bankn'           tabname = 'LT_TAB' seltext_m = 'bankn'                                         )
+    ( fieldname = 'DAT00'           tabname = 'LT_TAB' seltext_m = 'DAT00'                                         )
+    ( fieldname = 'UHR00'           tabname = 'LT_TAB' seltext_m = 'UHR00'                                         )
+    ( fieldname = 'RCBON,'           tabname = 'LT_TAB' seltext_m = 'RCBON'                                         )
+    ( fieldname = 'UNAME'           tabname = 'LT_TAB' seltext_m = 'UNAME'                                         )
+    ( fieldname = 'NAME2'           tabname = 'LT_TAB' seltext_m = 'NAME2 '                                         )
+    ( fieldname = 'STRAS'           tabname = 'LT_TAB' seltext_m = 'STRAS'                                         )
+    ( fieldname = 'EMPCT'           tabname = 'LT_TAB' seltext_m = 'EMPCT'                                         )
+    ( fieldname = 'WOSTD'           tabname = 'LT_TAB' seltext_m = 'WOSTD'                                         )
+    ( fieldname = 'ARBST'           tabname = 'LT_TAB' seltext_m = 'ARBST'                                         )
+    ( fieldname = 'AEDTM'           tabname = 'LT_TAB' seltext_m = 'AEDTM'                                         )
+    ( fieldname = 'TRFAR'           tabname = 'LT_TAB' seltext_m = 'TRFAR'                                         )
+    ( fieldname = 'TRFST, '         tabname = 'LT_TAB' seltext_m = 'TRFST'                                         ) ).
+
+
+CALL FUNCTION 'REUSE_ALV_GRID_DISPLAY'
+  EXPORTING
+    i_callback_program = sy-repid
+    it_fieldcat        = gt_fcat[]
+  TABLES
+    t_outtab           = lt_tab[]
+  EXCEPTIONS
+    program_error      = 1
+    OTHERS             = 2.
+
+*  SELECT BTRTL FROM PA0001 INTO TABLE LT_TAB WHERE pernr = p1.
+
+*    SELECT VORNA NACHN FROM PA0002 INTO TABLE LT_TAB.
+*
+*      SELECT BANKN FROM PA0009 INTO TABLE LT_TAB.

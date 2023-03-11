@@ -1,0 +1,157 @@
+*&---------------------------------------------------------------------*
+*& Report ZUAF_FS_LIST_EMPLOYE_A
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zuaf_fs_list_employe_a.
+
+DATA: gs_fcat TYPE          slis_fieldcat_alv,
+      gt_fcat TYPE          slis_t_fieldcat_alv.
+
+TABLES: pa0000.
+
+TYPES: BEGIN OF lt_tables,
+         personal_no  TYPE pa0000-preas,
+         first_name   TYPE pa0002-vorna,
+         last_name    TYPE pa0002-nach2,
+         position     TYPE pa0001-plans,
+         position_txt TYPE t528t-plstx,
+         data_type    TYPE pa0041-dar01,
+         data         TYPE pa0041-dat01,
+         org_unit     TYPE pa0001-orgeh,
+         org_txt      TYPE t527x-orgtx,
+       END OF lt_tables.
+
+DATA: lt_int_table  TYPE TABLE OF lt_tables,
+      ls_int_table  TYPE lt_tables,
+
+      lt_int_pa0000 TYPE TABLE OF pa0000,
+      ls_int_pa0000 TYPE pa0000,
+
+      lt_int_pa0001 TYPE TABLE OF pa0001,
+      ls_int_pa0001 TYPE pa0001,
+
+      lt_int_pa0002 TYPE TABLE OF pa0002,
+      ls_int_pa0002 TYPE pa0002,
+
+      lt_int_pa0041 TYPE TABLE OF pa0041,
+      ls_int_pa0041 TYPE pa0041,
+
+      lt_int_t527x  TYPE TABLE OF t527x,
+      ls_int_t527x  TYPE t527x,
+
+      lt_int_t528t  TYPE TABLE OF t528t,
+      ls_int_t528t  TYPE t528t.
+
+SELECTION-SCREEN BEGIN OF BLOCK part1 WITH FRAME TITLE TEXT-001.
+SELECT-OPTIONS : s_pernr FOR pa0000-pernr.
+SELECTION-SCREEN END OF BLOCK part1.
+
+INITIALIZATION.
+
+  FREE:
+   lt_int_table,
+   ls_int_table,
+
+   lt_int_pa0000,
+   ls_int_pa0000,
+
+   lt_int_pa0001,
+   ls_int_pa0001,
+
+   lt_int_pa0002,
+   ls_int_pa0002,
+
+   lt_int_pa0041,
+   ls_int_pa0041,
+
+   lt_int_t527x,
+   ls_int_t527x,
+
+   lt_int_t528t,
+   ls_int_t528t.
+
+START-OF-SELECTION.
+
+  SELECT *
+    FROM pa0000
+    INTO TABLE lt_int_pa0000
+      WHERE pernr IN s_pernr.
+
+  SELECT *
+    FROM pa0001
+     INTO TABLE lt_int_pa0001
+    FOR ALL ENTRIES IN lt_int_pa0000
+     WHERE pernr EQ lt_int_pa0000-pernr.
+
+  SELECT *
+  FROM pa0002
+  INTO TABLE lt_int_pa0002
+  FOR ALL ENTRIES IN lt_int_pa0000
+  WHERE pernr EQ lt_int_pa0000-pernr.
+
+  SELECT *
+FROM pa0041
+INTO TABLE lt_int_pa0041
+FOR ALL ENTRIES IN lt_int_pa0000
+WHERE pernr = lt_int_pa0000-pernr.
+
+  SELECT *
+    FROM t527x
+    INTO TABLE lt_int_t527x
+      FOR ALL ENTRIES IN lt_int_pa0001
+        WHERE orgeh = lt_int_pa0001-orgeh AND
+              sprsl = sy-langu.
+
+  SELECT *
+    FROM t528t
+    INTO TABLE lt_int_t528t
+      FOR ALL ENTRIES IN lt_int_pa0001
+        WHERE sprsl = sy-langu AND
+              plans = lt_int_pa0001-plans.
+
+END-OF-SELECTION.
+
+
+  LOOP AT lt_int_pa0000 INTO ls_int_pa0000.
+
+    ls_int_table-personal_no =  ls_int_pa0000-pernr.
+
+    READ TABLE  lt_int_pa0001 INTO ls_int_pa0001 WITH KEY pernr = ls_int_pa0001-pernr
+                                                 BINARY SEARCH.
+    IF sy-subrc = 0.
+      ls_int_table-position = ls_int_pa0001-plans.
+      ls_int_table-org_unit = ls_int_pa0001-orgeh.
+    ENDIF.
+
+    READ TABLE lt_int_pa0002 INTO ls_int_pa0002 WITH KEY pernr = ls_int_pa0001-pernr.
+    IF sy-subrc = 0.
+      ls_int_table-first_name = ls_int_pa0002-vorna.
+      ls_int_table-last_name = ls_int_pa0002-nachn.
+    ENDIF.
+
+    READ TABLE lt_int_pa0041 INTO ls_int_pa0041 WITH KEY pernr = ls_int_pa0001-pernr.
+    IF sy-subrc = 0.
+      ls_int_table-data_type = ls_int_pa0041-dar01.
+      ls_int_table-last_name = ls_int_pa0041-dat01.
+    ENDIF.
+
+    READ TABLE lt_int_t527x INTO ls_int_t527x WITH KEY orgeh = ls_int_pa0001-orgeh.
+    IF sy-subrc = 0.
+      ls_int_table-org_txt = ls_int_t527x-orgtx.
+    ENDIF.
+
+    READ TABLE lt_int_t528t INTO ls_int_t528t WITH KEY plans = ls_int_pa0001-plans.
+    IF sy-subrc IS INITIAL.
+      ls_int_table-position_txt = ls_int_t528t-plstx.
+    ENDIF.
+
+    APPEND ls_int_table TO lt_int_table.
+
+    CLEAR: ls_int_table,
+    ls_int_pa0000,
+    ls_int_pa0001,
+    ls_int_pa0002,
+    ls_int_pa0041.
+
+  ENDLOOP.
